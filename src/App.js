@@ -22,4 +22,9 @@ function App() {
   );
 }
 
-export default App;
+export default App
+
+//npm install
+//npm install json-server react-icons
+//npm run start
+
