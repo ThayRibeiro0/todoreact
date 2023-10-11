@@ -1,9 +1,8 @@
 import './App.css';
-
-import {useState, useEffect} from 'react'
+import {useEffect, useState} from 'react'
 import {BsTrash, BsBookmarkCheck, BsBookmarkCheckFill} from 'react-icons/bs'
 
-const API = "https://localhost:5000"
+const API = "http://localhost:5000"
 
 function App() {
 
@@ -54,6 +53,27 @@ function App() {
     setTime("")
   }
 
+  const handleDelete = async (id) => {
+    
+    await fetch(API + "/todos/" + id, {
+      method: "DELETE"
+      })
+      setTodos((prevState) => prevState.filter((todo) => todo.id !== id))
+  }
+
+  const handleEdit = async (todo) => {
+      todo.done = !todo.done
+
+    const data = await fetch(API + "/todos/" + todo.id, {
+      method: "PUT",
+      body: JSON.stringify(todo),
+      headers: {
+        "Content-Type": "application/json",
+      }
+      })
+      setTodos((prevState) => prevState.map((t) => (t.id === data.id ? (t = data) : t)))
+  }
+
   if(loading) {
     return <p>CARREGANDO...</p>
   }
@@ -73,7 +93,7 @@ function App() {
             <label htmlFor='title'>What will you do?</label>
             <input 
               type='text' 
-              name='text' 
+              name='title' 
               placeholder='To-do title' 
               onChange={(e) => setTitle(e.target.value)}
               value={title || ''}
@@ -103,11 +123,12 @@ function App() {
         {todos.map((todo) => (
           <div className="todo" key={todo.id}>
             <h3 className={todo.done ? "todo-done" : ""}>{todo.title}</h3>
-            <p>Duration: {todo.time}</p>
+            <p>Duration: {todo.time}h</p>
             <div className="actions">
-              <span>{!todo.done ? <BsBookmarkCheck /> : <BsBookmarkCheckFill /> }
+              <span onClick={() => handleEdit(todo)}>
+                {!todo.done ? <BsBookmarkCheck /> : <BsBookmarkCheckFill /> }
               </span>
-              <BsTrash />
+              <BsTrash onClick={() => handleDelete(todo.id)}/>
             </div>
           </div>
         ))}
