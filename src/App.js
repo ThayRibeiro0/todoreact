@@ -9,21 +9,110 @@ function App() {
 
   const [title, setTitle] = useState('')
   const [time, setTime] = useState('')
-  const [todos, setTodo] = useState([])
+  const [todos, setTodos] = useState([])
   const [loading, setLoading] = useState(false)
 
+  // Load todo on page load
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true)
+
+      const res = await fetch(API + "/todos")
+        .then((res) => res.json())
+        .then((data) => data)
+        .catch((err) => err)
+
+      setLoading(false)
+
+      setTodos(res)
+    }
+
+    loadData()
+  }, [])
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+    const todo = {
+      id: Math.random(),
+      title,
+      time,
+      done: false,
+    };
+
+    await fetch(API + "/todos", {
+      method: "POST",
+      body: JSON.stringify(todo),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+
+    setTodos((prevState) => [...prevState, todo])
+
+    setTitle("")
+    setTime("")
+  }
+
+  if(loading) {
+    return <p>CARREGANDO...</p>
+  }
 
   return (
     <div className="App">
+
       <div className="todo-header">
         <h1>React Todo</h1>
       </div>
+
       <div className="form-todo">
-        <p>Form</p>
+        <h2>Insert the next to-do</h2>
+        <form onSubmit={handleSubmit}>
+
+          <div className="form-control">
+            <label htmlFor='title'>What will you do?</label>
+            <input 
+              type='text' 
+              name='text' 
+              placeholder='To-do title' 
+              onChange={(e) => setTitle(e.target.value)}
+              value={title || ''}
+              required
+            />
+          </div>
+
+          <div className="form-control">
+            <label htmlFor='time'>Duration: </label>
+            <input 
+              type='text' 
+              name='time' 
+              placeholder='Estimated time (in hours)' 
+              onChange={(e) => setTime(e.target.value)}
+              value={time || ''}
+              required
+            />
+          </div>
+          <input type='submit' value='Create to-do' />
+        </form>
+
       </div>
+
       <div className="list-todo">
-        <p>Listas</p>
+        <h2>To-do list:</h2>
+        {todos.length === 0 && <p>Don't have to-do</p>}
+        {todos.map((todo) => (
+          <div className="todo" key={todo.id}>
+            <h3 className={todo.done ? "todo-done" : ""}>{todo.title}</h3>
+            <p>Duration: {todo.time}</p>
+            <div className="actions">
+              <span>{!todo.done ? <BsBookmarkCheck /> : <BsBookmarkCheckFill /> }
+              </span>
+              <BsTrash />
+            </div>
+          </div>
+        ))}
       </div>
+
     </div>
   );
 }
